@@ -1,0 +1,9 @@
+/node_modules
+node_modules
+build
+.dockerignore
+Dockerfile
+Dockerfile.prod
+README.md
+progress.txt
+my-react-app/
