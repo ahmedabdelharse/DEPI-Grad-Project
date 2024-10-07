@@ -2,8 +2,9 @@
 node_modules
 build
 .dockerignore
+Jenkinsfile
 Dockerfile
 Dockerfile.prod
 README.md
 progress.txt
-my-react-app/
+# my-react-app/
