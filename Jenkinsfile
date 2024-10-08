@@ -22,9 +22,13 @@ pipeline {
     stage('Deploy') {
       steps {
         withCredentials([usernamePassword(credentialsId: "${DOCKER_REGISTRY_CREDS}", passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-          sh "echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin ${DOCKER_REGISTRY}"
-          sh 'docker push ${DOCKER_IMAGE}'
-        }
+            sh '''
+                echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin ${DOCKER_REGISTRY}
+            '''
+            sh 'docker push ${DOCKER_IMAGE}'
+            }
+        //     sh "echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin ${DOCKER_REGISTRY}"
+        //   sh 'docker push ${DOCKER_IMAGE}'
       }
     }
   }
