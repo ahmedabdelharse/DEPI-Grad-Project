@@ -12,7 +12,7 @@ COPY react_app/package.json react_app/package-lock.json /app/
 RUN npm ci --production
 
 # Copy the rest of the application code
-#COPY . .
+COPY ./react_app/ .
 
 # Build the React app
 RUN npm run build
