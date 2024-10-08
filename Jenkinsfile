@@ -3,7 +3,10 @@ pipeline {
 
   environment {
     APP_NAME = 'my-react-app'
-    DOCKER_IMAGE = "${DOCKER_REGISTRY}/${APP_NAME}:${BUILD_NUMBER}"
+    // DOCKER_IMAGE = "${DOCKER_REGISTRY}/${APP_NAME}:${BUILD_NUMBER}"
+    DOCKER_IMAGE = "ahmedabdelhares/${APP_NAME}:${BUILD_NUMBER}"
+    // docker push ahmedabdelhares/my-react-app:tagname
+
   }
 
   stages {
@@ -23,7 +26,7 @@ pipeline {
       steps {
         withCredentials([usernamePassword(credentialsId: "${DOCKER_REGISTRY_CREDS}", passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
             sh '''
-                echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin ${DOCKER_REGISTRY}
+                echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin ahmedabdelhares
             '''
             sh 'docker push ${DOCKER_IMAGE}'
             }
