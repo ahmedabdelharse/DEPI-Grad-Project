@@ -5,14 +5,14 @@ FROM node:alpine AS build
 WORKDIR /app
 
 # Copy package.json and lock file
-COPY package.json package-lock.json /app/
+COPY react_app/package.json react_app/package-lock.json /app/
 
 # Install dependencies (only prod dependencies by setting NODE_ENV)
 # RUN npm install --production
 RUN npm ci --production
 
 # Copy the rest of the application code
-COPY . .
+#COPY . .
 
 # Build the React app
 RUN npm run build
