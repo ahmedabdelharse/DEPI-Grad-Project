@@ -11,7 +11,7 @@ pipeline {
     DOCKER_IMAGE_LATEST = "${DOCKER_REGISTRY}/${APP_NAME}:latest"
     // DOCKER_IMAGE_TAGGED = "${DOCKER_REGISTRY}/${APP_NAME}:${BUILD_NUMBER}"
     // TEST_IMAGE = "${APP_NAME}-test"
-    DOCKER_REGISTRY = "docker.io"
+    DOCKER_PLATFORM = "docker.io"
   }
 
   stages {
@@ -42,7 +42,7 @@ pipeline {
           script {
             // Login to Docker
             sh '''
-              echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin ${DOCKER_REGISTRY}
+              echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin ${DOCKER_PLATFORM}
             '''
 
             // Retry push in case of network issues
