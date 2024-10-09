@@ -1,10 +1,10 @@
 pipeline {
   agent any
 
-  parameters {
-    string(name: 'DOCKER_REGISTRY', defaultValue: 'docker.io', description: 'Docker registry to push to')
-    string(name: 'DOCKER_REGISTRY_CREDS', defaultValue: 'docker-registry-credentials', description: 'Docker registry credentials')
-  }
+  // parameters {
+  //   string(name: 'DOCKER_REGISTRY', defaultValue: 'docker.io', description: 'Docker registry to push to')
+  //   string(name: 'DOCKER_REGISTRY_CREDS', defaultValue: 'docker-registry-credentials', description: 'Docker registry credentials')
+  // }
 
   environment {
     APP_NAME = 'my-react-app'
