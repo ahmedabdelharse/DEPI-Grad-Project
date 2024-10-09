@@ -33,7 +33,7 @@ pipeline {
     //       sh 'docker run --rm --entrypoint npm ${DOCKER_IMAGE_LATEST} run test'
     //     }
     //   }
-}
+// }
 
     stage('Deploy') {
       steps {
