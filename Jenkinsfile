@@ -29,13 +29,11 @@ pipeline {
     stage('Test') {
       steps {
         script {
-          // Build a temporary image from the build stage to run tests
-          // sh "docker build --target build -t ${TEST_IMAGE} ."
-          // sh "docker run --rm ${TEST_IMAGE} npm run test"
-          sh 'docker run --rm --entrypoint "npm" ${DOCKER_IMAGE_LATEST} npm run test'
+          // Run tests in the Node.js build stage before the image is finalized
+          sh 'docker run --rm --entrypoint npm ${DOCKER_IMAGE_LATEST} run test'
         }
       }
-    }
+}
 
     stage('Deploy') {
       steps {
