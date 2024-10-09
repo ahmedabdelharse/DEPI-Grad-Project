@@ -1,10 +1,10 @@
 pipeline {
   agent any
 
-  // parameters {
-  //   string(name: 'DOCKER_REGISTRY', defaultValue: 'docker.io', description: 'Docker registry to push to')
-  //   string(name: 'DOCKER_REGISTRY_CREDS', defaultValue: 'docker-registry-credentials', description: 'Docker registry credentials')
-  // }
+  parameters {
+    string(name: 'DOCKER_REGISTRY', defaultValue: 'docker.io', description: 'Docker registry to push to')
+    string(name: 'DOCKER_REGISTRY_CREDS', defaultValue: 'docker-registry-credentials', description: 'Docker registry credentials')
+  }
 
   environment {
     APP_NAME = 'my-react-app'
@@ -27,8 +27,13 @@ pipeline {
     stage('Test') {
       steps {
         script {
-          // Run tests in the build stage of the Dockerfile, where npm is available
-          sh 'docker run --rm --entrypoint "" ${DOCKER_IMAGE_LATEST} npm run test'
+          // Run tests in the build stage of the Dockerfile, using a temporary container
+          // Create a new container from the build stage
+          sh '''
+            # Use --target build to run tests in the build environment
+            docker build --target build -t ${APP_NAME}-test .
+            docker run --rm ${APP_NAME}-test npm run test
+          '''
         }
       }
     }
@@ -58,12 +63,90 @@ pipeline {
       script {
         // Clean up Docker images locally to free up space
         sh 'docker rmi ${DOCKER_IMAGE_LATEST} ${DOCKER_IMAGE_TAGGED} || true' // ignore error if image is not found
+        sh 'docker rmi ${APP_NAME}-test || true' // clean up test image
         sh 'docker system prune -f'
         sh 'docker logout'
       }
     }
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+// pipeline {
+//   agent any
+
+//   // parameters {
+//   //   string(name: 'DOCKER_REGISTRY', defaultValue: 'docker.io', description: 'Docker registry to push to')
+//   //   string(name: 'DOCKER_REGISTRY_CREDS', defaultValue: 'docker-registry-credentials', description: 'Docker registry credentials')
+//   // }
+
+//   environment {
+//     APP_NAME = 'my-react-app'
+//     DOCKER_IMAGE_LATEST = "${DOCKER_REGISTRY}/${APP_NAME}:latest"
+//     DOCKER_IMAGE_TAGGED = "${DOCKER_REGISTRY}/${APP_NAME}:${BUILD_NUMBER}"
+//   }
+
+//   stages {
+//     stage('Build') {
+//       steps {
+//         timeout(time: 20, unit: 'MINUTES') {
+//           script {
+//             // Build the Docker image using multi-stage Dockerfile with caching
+//             sh 'docker build --cache-from ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_TAGGED} .'
+//           }
+//         }
+//       }
+//     }
+
+//     stage('Test') {
+//       steps {
+//         script {
+//           // Run tests in the build stage of the Dockerfile, where npm is available
+//           sh 'docker run --rm --entrypoint "" ${DOCKER_IMAGE_LATEST} npm run test'
+//         }
+//       }
+//     }
+
+//     stage('Deploy') {
+//       steps {
+//         withCredentials([usernamePassword(credentialsId: "${DOCKER_REGISTRY_CREDS}", passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+//           script {
+//             // Login to Docker
+//             sh '''
+//                 echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin ${DOCKER_REGISTRY}
+//             '''
+
+//             // Retry push in case of network issues
+//             retry(3) {
+//               sh 'docker push ${DOCKER_IMAGE_LATEST}'
+//               sh 'docker push ${DOCKER_IMAGE_TAGGED}'
+//             }
+//           }
+//         }
+//       }
+//     }
+//   }
+
+//   post {
+//     always {
+//       script {
+//         // Clean up Docker images locally to free up space
+//         sh 'docker rmi ${DOCKER_IMAGE_LATEST} ${DOCKER_IMAGE_TAGGED} || true' // ignore error if image is not found
+//         sh 'docker system prune -f'
+//         sh 'docker logout'
+//       }
+//     }
+//   }
+// }
 
 
 
