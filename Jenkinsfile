@@ -20,7 +20,7 @@ pipeline {
           script {
             // Build the Docker image using multi-stage Dockerfile with caching
             // sh "docker build --cache-from ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_TAGGED} ."
-            sh "docker build --cache-from ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_LATEST}"
+            sh "docker build --cache-from ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_LATEST} ."
           }
         }
       }
