@@ -27,8 +27,8 @@ pipeline {
     stage('Test') {
       steps {
         script {
-          // Run tests in a separate stage
-          sh 'docker run --rm ${DOCKER_IMAGE_LATEST} npm run test'
+          // Run tests in the build stage of the Dockerfile, where npm is available
+          sh 'docker run --rm --entrypoint "" ${DOCKER_IMAGE_LATEST} npm run test'
         }
       }
     }
@@ -57,13 +57,14 @@ pipeline {
     always {
       script {
         // Clean up Docker images locally to free up space
-        sh 'docker rmi ${DOCKER_IMAGE_LATEST} ${DOCKER_IMAGE_TAGGED}'
+        sh 'docker rmi ${DOCKER_IMAGE_LATEST} ${DOCKER_IMAGE_TAGGED} || true' // ignore error if image is not found
         sh 'docker system prune -f'
         sh 'docker logout'
       }
     }
   }
 }
+
 
 
 
