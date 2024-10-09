@@ -9,7 +9,7 @@ pipeline {
   environment {
     APP_NAME = 'my-react-app'
     DOCKER_IMAGE_LATEST = "${DOCKER_REGISTRY}/${APP_NAME}:latest"
-    // DOCKER_IMAGE_TAGGED = "${DOCKER_REGISTRY}/${APP_NAME}:${BUILD_NUMBER}"
+    DOCKER_IMAGE_TAGGED = "${DOCKER_REGISTRY}/${APP_NAME}:${BUILD_NUMBER}"
   }
 
   stages {
@@ -18,8 +18,7 @@ pipeline {
         timeout(time: 20, unit: 'MINUTES') {
           script {
             // Build the Docker image using multi-stage Dockerfile with caching
-            // sh 'docker build --cache-from ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_TAGGED} .'
-            sh 'docker build -t ${DOCKER_IMAGE_LATEST}  .'
+            sh 'docker build --cache-from ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_TAGGED} .'
           }
         }
       }
@@ -46,7 +45,7 @@ pipeline {
             // Retry push in case of network issues
             retry(3) {
               sh 'docker push ${DOCKER_IMAGE_LATEST}'
-              // sh 'docker push ${DOCKER_IMAGE_TAGGED}'
+              sh 'docker push ${DOCKER_IMAGE_TAGGED}'
             }
           }
         }
