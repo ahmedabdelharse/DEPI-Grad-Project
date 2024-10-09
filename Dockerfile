@@ -49,11 +49,14 @@ RUN npm cache clean --force && npm ci --production
 # Copy the rest of the application code
 COPY ./react_app/ .
 
+# Run tests before the build
+RUN npm run test
+
 # Build the React app for production
 RUN npm run build
 
 # Stage 2: Serve the app with NGINX
-FROM node:alpine
+FROM nginx:alpine
 
 # Copy the production build output from the first stage to NGINX
 COPY --from=build /app/build /usr/share/nginx/html

@@ -26,13 +26,13 @@ pipeline {
       }
     }
 
-    stage('Test') {
-      steps {
-        script {
-          // Run tests in the Node.js build stage before the image is finalized
-          sh 'docker run --rm --entrypoint npm ${DOCKER_IMAGE_LATEST} run test'
-        }
-      }
+    // stage('Test') {
+    //   steps {
+    //     script {
+    //       // Run tests in the Node.js build stage before the image is finalized
+    //       sh 'docker run --rm --entrypoint npm ${DOCKER_IMAGE_LATEST} run test'
+    //     }
+    //   }
 }
 
     stage('Deploy') {
