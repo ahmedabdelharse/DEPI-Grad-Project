@@ -11,6 +11,7 @@ pipeline {
     DOCKER_IMAGE_LATEST = "${DOCKER_REGISTRY}/${APP_NAME}:latest"
     // DOCKER_IMAGE_TAGGED = "${DOCKER_REGISTRY}/${APP_NAME}:${BUILD_NUMBER}"
     // TEST_IMAGE = "${APP_NAME}-test"
+    DOCKER_REGISTRY = "docker.io"
   }
 
   stages {
