@@ -32,7 +32,7 @@
 # CMD ["nginx", "-g", "daemon off;"]
 
 # Stage 1: Build the React app
-FROM node:18-alpine AS build
+FROM node:alpine AS build
 
 # Set environment variable for production
 ENV NODE_ENV=production
@@ -44,7 +44,7 @@ WORKDIR /app
 COPY react_app/package.json react_app/package-lock.json /app/
 
 # Install only production dependencies using npm ci for a clean install
-RUN npm ci --production
+RUN npm cache clean --force && npm ci --production
 
 # Copy the rest of the application code
 COPY ./react_app/ .
@@ -53,7 +53,7 @@ COPY ./react_app/ .
 RUN npm run build
 
 # Stage 2: Serve the app with NGINX
-FROM node:18-alpine
+FROM node:alpine
 
 # Copy the production build output from the first stage to NGINX
 COPY --from=build /app/build /usr/share/nginx/html
