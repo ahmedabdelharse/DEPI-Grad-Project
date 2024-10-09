@@ -9,8 +9,8 @@ pipeline {
   environment {
     APP_NAME = 'my-react-app'
     DOCKER_IMAGE_LATEST = "${DOCKER_REGISTRY}/${APP_NAME}:latest"
-    DOCKER_IMAGE_TAGGED = "${DOCKER_REGISTRY}/${APP_NAME}:${BUILD_NUMBER}"
-    TEST_IMAGE = "${APP_NAME}-test"
+    // DOCKER_IMAGE_TAGGED = "${DOCKER_REGISTRY}/${APP_NAME}:${BUILD_NUMBER}"
+    // TEST_IMAGE = "${APP_NAME}-test"
   }
 
   stages {
@@ -19,7 +19,8 @@ pipeline {
         timeout(time: 20, unit: 'MINUTES') {
           script {
             // Build the Docker image using multi-stage Dockerfile with caching
-            sh "docker build --cache-from ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_TAGGED} ."
+            // sh "docker build --cache-from ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_TAGGED} ."
+            sh "docker build --cache-from ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_LATEST}"
           }
         }
       }
@@ -29,8 +30,9 @@ pipeline {
       steps {
         script {
           // Build a temporary image from the build stage to run tests
-          sh "docker build --target build -t ${TEST_IMAGE} ."
-          sh "docker run --rm ${TEST_IMAGE} npm run test"
+          // sh "docker build --target build -t ${TEST_IMAGE} ."
+          // sh "docker run --rm ${TEST_IMAGE} npm run test"
+          sh 'docker run --rm ${DOCKER_IMAGE_LATEST} npm run test'
         }
       }
     }
@@ -47,7 +49,7 @@ pipeline {
             // Retry push in case of network issues
             retry(3) {
               sh "docker push ${DOCKER_IMAGE_LATEST}"
-              sh "docker push ${DOCKER_IMAGE_TAGGED}"
+              // sh "docker push ${DOCKER_IMAGE_TAGGED}"
             }
           }
         }
@@ -59,7 +61,8 @@ pipeline {
     always {
       script {
         // Clean up Docker images locally to free up space
-        sh "docker rmi ${DOCKER_IMAGE_LATEST} ${DOCKER_IMAGE_TAGGED} ${TEST_IMAGE} || true" // ignore error if image is not found
+        // sh "docker rmi ${DOCKER_IMAGE_LATEST} ${DOCKER_IMAGE_TAGGED} ${TEST_IMAGE} || true" // ignore error if image is not found
+        sh "docker rmi ${DOCKER_IMAGE_LATEST} || true" // ignore error if image is not found
         sh 'docker system prune -f'
         sh 'docker logout'
       }
