@@ -53,7 +53,7 @@ COPY ./react_app/ .
 RUN npm run build
 
 # Stage 2: Serve the app with NGINX
-FROM nginx:alpine
+FROM node:18-alpine
 
 # Copy the production build output from the first stage to NGINX
 COPY --from=build /app/build /usr/share/nginx/html
