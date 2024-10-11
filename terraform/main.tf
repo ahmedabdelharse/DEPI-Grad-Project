@@ -58,10 +58,32 @@ module "instances" {
   source                    = "./instances"
   ami_id                    = "ami-0a0e5d9c7acc336f1" 
   instance_type             = "t2.micro"
-  public_subnet_id          = module.public_subnet_1.subnet_id
+  public_subnet_id          = module.public_subnet.subnet_id
   public_sg_id              = module.security_groups.public_sg_id
   depends_on = [ module.internet_gateway ]
   key_name                  = module.key_pair.key_name
  
 }
 
+# module "s3_bucket" {
+#   source = "./s3-bucket"
+#   bucket_name = "terraform-webapp-bucket-sstate"
+# }
+
+# module "dynamo_lock_state" {
+#   source = "./dynamodb"
+#   name = "terraform-lock-state"
+#   billing_mode = "PAY_PER_REQUEST"
+#   hash_key = "LockID"
+#   tag_name = "terraform-lock-state"
+# }
+
+# terraform {
+#   backend "s3" {
+#     bucket         = "terraform-webapp-bucket-sstate"
+#     key            = "dev/terraform.tfstate"
+#     region         = "us-east-1"
+#     dynamodb_table = "terraform-lock-state"
+#     encrypt        = true
+#   }
+# }

@@ -43,11 +43,13 @@ pipeline {
             }
         }
 
-         stage('Run Ansible Playbook') {
+      
+           stage('Run Ansible Playbook') {
+            agent { label 'ansible-agent' }
             steps {
                 script {
                     // Run the Ansible command
-                    sh 'ansible-playbook -i <TARGET_IP>, -u ubuntu --private-key="./ansible.pem" ansible-playbook.yml' 
+                    sh 'ansible-playbook -i inventory.ini ansible-playbook.yml' // Replace with your playbook and inventory files
                 }
             }
         }
