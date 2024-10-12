@@ -2,9 +2,9 @@
 node_modules
 progress.txt
 
-tf-files/.terraform*
-terraform*
-tf-files/*.tfvars
+terraform_files/.terraform*
+#terraform_files*
+terraform_files/*.tfvars
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
