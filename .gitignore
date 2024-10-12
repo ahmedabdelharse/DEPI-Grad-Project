@@ -2,30 +2,33 @@
 node_modules
 progress.txt
 
-terraform_files/.terraform*
+terraform-ec2/.terraform*
+terraform-ec2/ALB
 #terraform_files*
-terraform_files/*.tfvars
+terraform-ec2/*.tfvars
+
+
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
-/.pnp
-.pnp.js
+# /node_modules
+# /.pnp
+# .pnp.js
 
-# testing
-/coverage
+# # testing
+# /coverage
 
-# production
-/build
+# # production
+# /build
 
-# misc
-.DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# # misc
+# .DS_Store
+# .env.local
+# .env.development.local
+# .env.test.local
+# .env.production.local
 
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# npm-debug.log*
+# yarn-debug.log*
+# yarn-error.log*
