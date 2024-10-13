@@ -1,0 +1,25 @@
+---
+- name: build and deploy docker container
+  hosts: dockerserver
+  gather_facts: false 
+  remote_user: root 
+  tasks:
+    - name: building docker image 
+      docker_image:
+        name: mediplus-lite
+        source: build
+        build:
+          path: ~/project/
+        state: present
+    - name: stopping the container
+      docker_container: 
+        name: mediplus
+        image: mediplus-lite
+        state: stopped
+    - name: creating the container
+      docker_container: 
+        name: mediplus
+        image: mediplus-lite
+        ports:
+          - "80:80"
+        state: started       
