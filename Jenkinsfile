@@ -41,7 +41,7 @@ pipeline {
                     ansiblePlaybook(
                         playbook: 'deploy_docker.yml',
                         inventory: 'inventory.ini',
-                        credentialsId: 'REACT_SSH_CREDENTIALS_ID',
+                        credentialsId: 'Depi-app-key.pem',
                         extras: "-e docker_image=${DOCKER_IMAGE_LATEST}"
                     )
                 }
