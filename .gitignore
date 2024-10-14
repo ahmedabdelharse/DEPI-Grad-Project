@@ -6,6 +6,7 @@ terraform-ec2/.terraform*
 terraform-ec2/ALB
 #terraform_files*
 terraform-ec2/*.tfvars
+terraform-ec2/*tfstate*
 
 
 

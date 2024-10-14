@@ -43,7 +43,7 @@ module "public-EC2-M" { #jump server
     data-owners = var.instance-data-owners
     data-filter_name = var.instance-data-filter_name
     data-filter_value = var.instance-data-filter_value
-    instance-subnet_ids = [module.SUBNET-M.public-subnet-ids-lb[0]]
+    instance-subnet_ids = [module.SUBNET-M.public-subnet-ids-bh[0]]
     instance-type = var.instance_type
     key_name = module.key_pair.key_name
     instance-sg = module.NETWORKING-M.sg-out.id

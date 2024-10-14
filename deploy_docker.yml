@@ -1,0 +1,67 @@
+---
+- name: Deploy Docker container to EC2
+  hosts: ec2_instances
+  become: yes
+  vars:
+    docker_image: ahmedabdelhares/my-react-app:latest #need to pass it as var
+    container_name: my-react-app-container
+    host_port: 80
+    container_port: 80
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install Docker dependencies
+      package:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+      when: ansible_distribution == "Ubuntu"
+
+    - name: Install Docker
+      apt:
+        name: 
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+      when: ansible_distribution == "Ubuntu"
+
+    - name: Ensure Docker service is running
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Pull Docker image
+      docker_image:
+        name: "{{ docker_image }}"
+        source: pull
+
+    - name: Run Docker container
+      docker_container:
+        name: "{{ container_name }}"
+        image: "{{ docker_image }}"
+        state: started
+        ports:
+          - "{{ host_port }}:{{ container_port }}"
+        restart_policy: always
+        # volumes: #test if needed after deploy
+        #   - /path/on/host/nginx.conf:/etc/nginx/nginx.conf:ro  # Optional: custom Nginx configuration
+        #   - /path/on/host/html:/usr/share/nginx/html:ro  # Optional: custom HTML content

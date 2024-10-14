@@ -1,73 +1,138 @@
 pipeline {
-  agent any
+    agent any
 
-  // parameters {
-  //   string(name: 'DOCKER_REGISTRY', defaultValue: 'docker.io', description: 'Docker registry to push to')
-  //   string(name: 'DOCKER_REGISTRY_CREDS', defaultValue: 'docker-registry-credentials', description: 'Docker registry credentials')
-  // }
-
-  environment {
-    APP_NAME = 'my-react-app'
-    DOCKER_IMAGE_LATEST = "${DOCKER_REGISTRY}/${APP_NAME}:latest"
-    // DOCKER_IMAGE_TAGGED = "${DOCKER_REGISTRY}/${APP_NAME}:${BUILD_NUMBER}"
-    // TEST_IMAGE = "${APP_NAME}-test"
-    DOCKER_PLATFORM = "docker.io"
-  }
-
-  stages {
-    stage('Build') {
-      steps {
-        timeout(time: 20, unit: 'MINUTES') {
-          script {
-            // Build the Docker image using multi-stage Dockerfile with caching
-            // sh "docker build --cache-from ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_TAGGED} ."
-            sh "docker build --cache-from ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_LATEST} ."
-          }
-        }
-      }
+    environment {
+        APP_NAME = 'my-react-app'
+        DOCKER_IMAGE_LATEST = "${DOCKER_REGISTRY}/${APP_NAME}:latest"
+        DOCKER_PLATFORM = "docker.io"
+        ANSIBLE_HOST_KEY_CHECKING = 'False'
     }
 
-    // stage('Test') {
-    //   steps {
-    //     script {
-    //       // Run tests in the Node.js build stage before the image is finalized
-    //       sh 'docker run --rm --entrypoint npm ${DOCKER_IMAGE_LATEST} run test'
-    //     }
-    //   }
-// }
-
-    stage('Deploy') {
-      steps {
-        withCredentials([usernamePassword(credentialsId: "${DOCKER_REGISTRY_CREDS}", passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-          script {
-            // Login to Docker
-            sh '''
-              echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin ${DOCKER_PLATFORM}
-            '''
-
-            // Retry push in case of network issues
-            retry(3) {
-              sh "docker push ${DOCKER_IMAGE_LATEST}"
-              // sh "docker push ${DOCKER_IMAGE_TAGGED}"
+    stages {
+        stage('Build') {
+            steps {
+                timeout(time: 20, unit: 'MINUTES') {
+                    script {
+                        sh "docker build --cache-from ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_LATEST} ."
+                    }
+                }
             }
-          }
         }
-      }
-    }
-  }
 
-  post {
-    always {
-      script {
-        // Clean up Docker images locally to free up space
-        // sh "docker rmi ${DOCKER_IMAGE_LATEST} ${DOCKER_IMAGE_TAGGED} ${TEST_IMAGE} || true" // ignore error if image is not found
-        sh "docker rmi ${DOCKER_IMAGE_LATEST} || true" // ignore error if image is not found
-        sh 'docker system prune -f'
-        sh 'docker logout'
-      }
+        stage('Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: "${DOCKER_REGISTRY_CREDS}", passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                    script {
+                        sh '''
+                        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin ${DOCKER_PLATFORM}
+                        '''
+
+                        retry(3) {
+                            sh "docker push ${DOCKER_IMAGE_LATEST}"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    ansiblePlaybook(
+                        playbook: 'deploy_docker.yml',
+                        inventory: 'inventory.ini',
+                        credentialsId: 'REACT_SSH_CREDENTIALS_ID',
+                        extras: "-e docker_image=${DOCKER_IMAGE_LATEST}"
+                    )
+                }
+            }
+        }
     }
-  }
+
+    post {
+        always {
+            script {
+                sh "docker rmi ${DOCKER_IMAGE_LATEST} || true"
+                sh 'docker system prune -f'
+                sh 'docker logout'
+            }
+        }
+    }
 }
+
+
+// pipeline {
+//   agent any
+
+//   // parameters {
+//   //   string(name: 'DOCKER_REGISTRY', defaultValue: 'docker.io', description: 'Docker registry to push to')
+//   //   string(name: 'DOCKER_REGISTRY_CREDS', defaultValue: 'docker-registry-credentials', description: 'Docker registry credentials')
+//   // }
+
+//   environment {
+//     APP_NAME = 'my-react-app'
+//     DOCKER_IMAGE_LATEST = "${DOCKER_REGISTRY}/${APP_NAME}:latest"
+//     // DOCKER_IMAGE_TAGGED = "${DOCKER_REGISTRY}/${APP_NAME}:${BUILD_NUMBER}"
+//     // TEST_IMAGE = "${APP_NAME}-test"
+//     DOCKER_PLATFORM = "docker.io"
+//   }
+
+//   stages {
+//     stage('Build') {
+//       steps {
+//         timeout(time: 20, unit: 'MINUTES') {
+//           script {
+//             // Build the Docker image using multi-stage Dockerfile with caching
+//             // sh "docker build --cache-from ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_TAGGED} ."
+//             sh "docker build --cache-from ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_LATEST} ."
+//           }
+//         }
+//       }
+//     }
+
+//     // stage('Test') {
+//     //   steps {
+//     //     script {
+//     //       // Run tests in the Node.js build stage before the image is finalized
+//     //       sh 'docker run --rm --entrypoint npm ${DOCKER_IMAGE_LATEST} run test'
+//     //     }
+//     //   }
+// // }
+
+//     stage('Push') {
+//       steps {
+//         withCredentials([usernamePassword(credentialsId: "${DOCKER_REGISTRY_CREDS}", passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+//           script {
+//             // Login to Docker
+//             sh '''
+//               echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin ${DOCKER_PLATFORM}
+//             '''
+
+//             // Retry push in case of network issues
+//             retry(3) {
+//               sh "docker push ${DOCKER_IMAGE_LATEST}"
+//               // sh "docker push ${DOCKER_IMAGE_TAGGED}"
+//             }
+//           }
+//         }
+//       }
+//     }
+//     // ansible-playbook -i inventory.ini deploy_docker.yml
+    
+//   }
+
+//   post {
+//     always {
+//       script {
+//         // Clean up Docker images locally to free up space
+//         // sh "docker rmi ${DOCKER_IMAGE_LATEST} ${DOCKER_IMAGE_TAGGED} ${TEST_IMAGE} || true" // ignore error if image is not found
+//         sh "docker rmi ${DOCKER_IMAGE_LATEST} || true" // ignore error if image is not found
+//         sh 'docker system prune -f'
+//         sh 'docker logout'
+//       }
+//     }
+//   }
+// }
 
 
 
