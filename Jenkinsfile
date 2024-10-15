@@ -19,10 +19,14 @@ pipeline {
             }
         }
 
-        stage('Terraform Apply') {
+        stage('Terraform apply') {
             steps {
                 dir('terraform-ec2/') {  // Adjust the path as necessary
-                sh 'terraform apply -auto-approve'
+                // sh 'terraform apply -auto-approve'
+                // }
+                withCredentials([file(credentialsId: 'secrets.tfvars', variable: 'TF_VARS_FILE')]) {
+                        sh 'terraform apply -auto-approve -var-file=${TF_VARS_FILE}'
+                    }
                 }
             }
         }
