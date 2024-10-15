@@ -87,6 +87,10 @@ pipeline {
                     """
                     }
                 }
+                sh '''
+                    cat terraform-ec2/inventory.ini
+                    cat inventory.ini
+                    '''
             }
         }
 
