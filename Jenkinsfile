@@ -114,13 +114,13 @@ pipeline {
             // Echo message to log the cleanup
             echo 'Cleaning up workspace'
 
-            // Cleanup workspace
+            // Cleanup workspace ##remove currently to no install everytime 
             // cleanWs()
-            sh '''
-                # Remove everything except the .terraform directory
-                find . -mindepth 1 ! -name '.terraform' -print
-                find . -mindepth 1 ! -name '.terraform' -exec rm -rf {} +
-            '''
+            // sh '''
+            //     # Remove everything except the .terraform directory
+            //     find . -mindepth 1 ! -name '.terraform' -print
+            //     find . -mindepth 1 ! -name '.terraform' -exec rm -rf {} +
+            // '''
 
             
             // Additional cleanup commands
