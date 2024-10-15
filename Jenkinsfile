@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')  // Reference the credential ID from Jenkins
-        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')  // Reference the credential ID from Jenkins
+        // AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')  // Reference the credential ID from Jenkins
+        // AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')  // Reference the credential ID from Jenkins
         APP_NAME = 'my-react-app'
         DOCKER_IMAGE_LATEST = "${DOCKER_REGISTRY}/${APP_NAME}:latest"
         DOCKER_PLATFORM = "docker.io"
@@ -19,13 +19,27 @@ pipeline {
             }
         }
 
-        stage('Terraform apply') {
+        // stage('Terraform apply') {
+        //     steps {
+        //         dir('terraform-ec2/') {  // Adjust the path as necessary
+        //         // sh 'terraform apply -auto-approve'
+        //         // }
+        //         withCredentials([file(credentialsId: 'secrets.tfvars', variable: 'TF_VARS_FILE')]) {
+        //                 sh 'terraform apply -auto-approve -var-file=${TF_VARS_FILE}'
+        //             }
+        //         }
+        //     }
+        // }
+
+        stage('Terraform Apply') {
             steps {
-                dir('terraform-ec2/') {  // Adjust the path as necessary
-                // sh 'terraform apply -auto-approve'
-                // }
-                withCredentials([file(credentialsId: 'secrets.tfvars', variable: 'TF_VARS_FILE')]) {
-                        sh 'terraform apply -auto-approve -var-file=${TF_VARS_FILE}'
+                // Use AWS Access Key ID and Secret Access Key
+                withCredentials([usernamePassword(credentialsId: 'aws-credentials', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    dir('terraform-ec2/') {  // Adjust the path as necessary
+                        withCredentials([file(credentialsId: 'secrets.tfvars', variable: 'TF_VARS_FILE')]) {
+                            // Run the Terraform apply command
+                            sh 'terraform apply -auto-approve -var-file=${TF_VARS_FILE}'
+                        }
                     }
                 }
             }
