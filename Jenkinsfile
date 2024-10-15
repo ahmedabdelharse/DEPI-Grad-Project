@@ -11,13 +11,13 @@ pipeline {
     }
 
     stages {
-        stage('Terraform Init') {
-            steps {
-                dir('terraform-ec2/') {  // Adjust the path as necessary
-                sh 'terraform init'
-                }
-            }
-        }
+        // stage('Terraform Init') {
+        //     steps {
+        //         dir('terraform-ec2/') {  // Adjust the path as necessary
+        //         sh 'terraform init'
+        //         }
+        //     }
+        // }
 
         // stage('Terraform apply') {
         //     steps {
