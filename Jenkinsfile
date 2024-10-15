@@ -11,23 +11,7 @@ pipeline {
     }
 
     stages {
-        stage('Terraform Init') {
-            steps {
-                dir('terraform-ec2/') {  // Adjust the path as necessary
-                sh 'terraform init'
-                }
-            }
-        }
-
-        stage('Terraform Apply') {
-            steps {
-                dir('terraform-ec2/') {  // Adjust the path as necessary
-                sh 'terraform apply -auto-approve'
-                }
-            }
-        }
-
-        stage('Build') { //need cache to work to save up resources
+        stage('Build') {
             steps {
                 timeout(time: 20, unit: 'MINUTES') {
                     script {
