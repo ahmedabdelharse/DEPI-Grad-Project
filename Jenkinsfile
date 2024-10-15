@@ -101,7 +101,13 @@ pipeline {
             echo 'Cleaning up workspace'
 
             // Cleanup workspace
-            cleanWs()
+            // cleanWs()
+            sh '''
+                # Remove everything except the .terraform directory
+                find . -mindepth 1 ! -name '.terraform' -print
+                find . -mindepth 1 ! -name '.terraform' -exec rm -rf {} +
+            '''
+
             
             // Additional cleanup commands
             script {
