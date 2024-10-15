@@ -79,7 +79,7 @@ pipeline {
                     dir('terraform-ec2/') { 
                     // Get the output of the EC2 public IPs from the module
                     def ec2Ips = sh(script: "terraform output -json ec2_public_ips", returnStdout: true).trim()
-                    terraform output -json ec2_public_ips | jq -r '.[]' > inventory2.ini
+                    sh ''' terraform output -json ec2_public_ips | jq -r '.[]' > inventory2.ini '''
 
                     // Write the inventory file
                     writeFile file: 'inventory.ini', text: """
