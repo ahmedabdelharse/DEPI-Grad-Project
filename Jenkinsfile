@@ -38,7 +38,7 @@ pipeline {
                     dir('terraform-ec2/') {  // Adjust the path as necessary
                         withCredentials([file(credentialsId: 'secrets.tfvars', variable: 'TF_VARS_FILE')]) {
                             // Run the Terraform apply command
-                            sh 'terraform apply -auto-approve -var-file=${TF_VARS_FILE}'
+                            sh 'terraform destroy -auto-approve -var-file=${TF_VARS_FILE}'
                         }
                     }
                 }
