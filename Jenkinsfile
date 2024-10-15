@@ -13,15 +13,17 @@ pipeline {
     stages {
         stage('Terraform Init') {
             steps {
-                sh 'cd terraform-ec2'
+                dir('terraform-ec2/') {  // Adjust the path as necessary
                 sh 'terraform init'
+                }
             }
         }
 
         stage('Terraform Apply') {
             steps {
+                dir('terraform-ec2/') {  // Adjust the path as necessary
                 sh 'terraform apply -auto-approve'
-                sh 'cd ..'
+                }
             }
         }
 
