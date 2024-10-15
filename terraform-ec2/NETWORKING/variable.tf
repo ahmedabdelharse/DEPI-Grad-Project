@@ -10,7 +10,8 @@ variable "pub-subnet_ids" {
 variable "igw-name" {}
 variable "prv-subnet_ids" {
     #description = "List of NAT subnet IDs."
-    type = list(string)
+    type        = list(string)
+    default     = []
 }
 
 variable "ingress_rules" {

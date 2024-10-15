@@ -2,6 +2,8 @@ pipeline {
     agent any
 
     environment {
+        AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')  // Reference the credential ID from Jenkins
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')  // Reference the credential ID from Jenkins
         APP_NAME = 'my-react-app'
         DOCKER_IMAGE_LATEST = "${DOCKER_REGISTRY}/${APP_NAME}:latest"
         DOCKER_PLATFORM = "docker.io"
@@ -9,7 +11,21 @@ pipeline {
     }
 
     stages {
-        stage('Build') {
+        stage('Terraform Init') {
+            steps {
+                sh 'cd terraform-ec2'
+                sh 'terraform init'
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+                sh 'terraform apply -auto-approve'
+                sh 'cd ..'
+            }
+        }
+
+        stage('Build') { //need cache to work to save up resources
             steps {
                 timeout(time: 20, unit: 'MINUTES') {
                     script {
@@ -18,6 +34,8 @@ pipeline {
                 }
             }
         }
+        
+        //need test stage
 
         stage('Push') {
             steps {
@@ -34,8 +52,30 @@ pipeline {
                 }
             }
         }
+        stage('Generate Ansible Inventory') {
+            steps {
+                // Wait until the EC2 instances have been created
+                script {
+                    // Get the output of the EC2 public IPs from the module
+                    def ec2Ips = sh(script: "terraform output -json ec2_public_ips", returnStdout: true).trim()
+                    
+                    // Write the inventory file
+                    writeFile file: 'inventory.ini', text: """
+                    [ec2_instances]
+                    ${ec2Ips.split('\n').collect { it + " ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/Depi-app-key.pem" }.join('\n')}
+                    """
+                }
+            }
+        }
 
-        stage('Deploy') {
+        // stage('Run Ansible Playbook') {
+        //     steps {
+        //         // Run Ansible with the inventory
+        //         sh 'ansible-playbook -i terraform-ec2/inventory.ini deploy_docker.yml'
+        //     }
+        // }
+
+        stage('Run Ansible Playbook') {
             steps {
                 script {
                     ansiblePlaybook(
@@ -51,6 +91,13 @@ pipeline {
 
     post {
         always {
+            // Echo message to log the cleanup
+            echo 'Cleaning up workspace'
+
+            // Cleanup workspace
+            cleanWs()
+            
+            // Additional cleanup commands
             script {
                 sh "docker rmi ${DOCKER_IMAGE_LATEST} || true"
                 sh 'docker system prune -f'
