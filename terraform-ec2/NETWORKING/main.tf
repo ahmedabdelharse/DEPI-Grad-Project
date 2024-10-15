@@ -66,7 +66,7 @@ resource "aws_internet_gateway" "igw" {
 
 
 resource "aws_nat_gateway" "nat" {
-  count = length(var.pub-subnet_ids)
+  count = length(var.prv-subnet_ids)
 
   allocation_id = aws_eip.eip[count.index].id
   subnet_id     = var.pub-subnet_ids[count.index]

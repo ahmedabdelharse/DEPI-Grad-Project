@@ -4,6 +4,9 @@ output "public-subnet-ids" {
 output "public-subnet-ids-bh" {
     value = tolist([for key, value in aws_subnet.subnets : value.id if value.map_public_ip_on_launch ])  
 }
+# output "new-public-subnet-ids" {
+#   value = aws_subnet.subnets.*.id  # Example of collecting subnet IDs
+# }
 
 
 output "private-subnet-ids" {
