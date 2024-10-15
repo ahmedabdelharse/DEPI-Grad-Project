@@ -37,17 +37,17 @@ module "public-EC2-M" { #jump server
     instance-associate_public_ip_address = var.public-instance-associate_public_ip_address
     instance-name = "my-react-app-ec2"
 }
-resource "null_resource" "create_ansible_inventory" {
-  provisioner "local-exec" {
-    command = <<EOT
-      echo "[ec2_instances]" > inventory.ini
-      for ip in $(terraform output -json ec2_public_ips | jq -r '.[]'); do
-        echo "$ip ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/Depi-app-key.pem" >> inventory.ini
-      done
-    EOT
-  }
+# resource "null_resource" "create_ansible_inventory" {
+#   provisioner "local-exec" {
+#     command = <<EOT
+#       echo "[ec2_instances]" > inventory.ini
+#       for ip in $(terraform output -json ec2_public_ips | jq -r '.[]'); do
+#         echo "$ip ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/Depi-app-key.pem" >> inventory.ini
+#       done
+#     EOT
+#   }
 
-    depends_on = [module.public-EC2-M]  # Ensure the module runs first
-}
+#     depends_on = [module.public-EC2-M]  # Ensure the module runs first
+# }
 
 

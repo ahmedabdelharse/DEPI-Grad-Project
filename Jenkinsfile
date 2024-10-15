@@ -76,6 +76,7 @@ pipeline {
             steps {
                 // Wait until the EC2 instances have been created
                 script {
+                    dir('terraform-ec2/') { 
                     // Get the output of the EC2 public IPs from the module
                     def ec2Ips = sh(script: "terraform output -json ec2_public_ips", returnStdout: true).trim()
                     
@@ -84,6 +85,7 @@ pipeline {
                     [ec2_instances]
                     ${ec2Ips.split('\n').collect { it + " ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/Depi-app-key.pem" }.join('\n')}
                     """
+                    }
                 }
             }
         }
@@ -100,7 +102,7 @@ pipeline {
                 script {
                     ansiblePlaybook(
                         playbook: 'deploy_docker.yml',
-                        inventory: 'inventory.ini',
+                        inventory: 'terraform-ec2/inventory.ini',
                         credentialsId: 'Depi-app-key.pem',
                         extras: "-e docker_image=${DOCKER_IMAGE_LATEST}"
                     )
