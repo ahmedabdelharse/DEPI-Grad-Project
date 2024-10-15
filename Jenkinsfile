@@ -79,7 +79,8 @@ pipeline {
                     dir('terraform-ec2/') { 
                     // Get the output of the EC2 public IPs from the module
                     def ec2Ips = sh(script: "terraform output -json ec2_public_ips", returnStdout: true).trim()
-                    
+                    terraform output -json ec2_public_ips | jq -r '.[]' > inventory2.ini
+
                     // Write the inventory file
                     writeFile file: 'inventory.ini', text: """
                     [ec2_instances]
@@ -87,9 +88,16 @@ pipeline {
                     """
                     }
                 }
+                
                 sh '''
+                    echo "[ec2_instances]" > terraform-ec2/inventory2.ini
+                    terraform output -json ec2_public_ips | jq -r '.[] | . + " ansible_ssh_private_key_file=/var/lib/jenkins/workspace/react-docker-pipeline/ssh17063419242249076167.key ansible_user=ubuntu"' >> terraform-ec2/inventory2.ini
+
                     cat terraform-ec2/inventory.ini
                     cat inventory.ini
+                    echo "---------------"
+                    cat terraform-ec2/inventory2.ini
+                    cat inventory2.ini
                     '''
             }
         }
