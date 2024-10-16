@@ -31,19 +31,19 @@ pipeline {
         //     }
         // }
 
-        stage('Terraform Apply') {
-            steps {
-                // Use AWS Access Key ID and Secret Access Key
-                withCredentials([usernamePassword(credentialsId: 'aws-credentials', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                    dir('terraform-ec2/') {  // Adjust the path as necessary
-                        withCredentials([file(credentialsId: 'secrets.tfvars', variable: 'TF_VARS_FILE')]) {
-                            // Run the Terraform apply command
-                            sh 'terraform destroy -auto-approve -var-file=${TF_VARS_FILE}'
-                        }
-                    }
-                }
-            }
-        }
+        // stage('Terraform Destroy') {
+        //     steps {
+        //         // Use AWS Access Key ID and Secret Access Key
+        //         withCredentials([usernamePassword(credentialsId: 'aws-credentials', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+        //             dir('terraform-ec2/') {  // Adjust the path as necessary
+        //                 withCredentials([file(credentialsId: 'secrets.tfvars', variable: 'TF_VARS_FILE')]) {
+        //                     // Run the Terraform apply command
+        //                     sh 'terraform destroy -auto-approve -var-file=${TF_VARS_FILE}'
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Build') { //need cache to work to save up resources
             steps {
@@ -72,35 +72,58 @@ pipeline {
                 }
             }
         }
+
         stage('Generate Ansible Inventory') {
             steps {
-                // Wait until the EC2 instances have been created
                 script {
-                    dir('terraform-ec2/') { 
-                    // Get the output of the EC2 public IPs from the module
-                    def ec2Ips = sh(script: "terraform output -json ec2_public_ips", returnStdout: true).trim()
-                    sh ''' terraform output -json ec2_public_ips | jq -r '.[]' > inventory2.ini '''
+                     withCredentials([file(credentialsId: 'Depi-app-key.pem', variable: 'SSH_PRIVATE_KEY')]) {   
+                        dir('terraform-ec2/') {
+                            // Retrieve EC2 public IPs from Terraform output
+                            def ec2Ips = sh(script: "terraform output -json ec2_public_ips", returnStdout: true).trim()
 
-                    // Write the inventory file
-                    writeFile file: 'inventory.ini', text: """
-                    [ec2_instances]
-                    ${ec2Ips.split('\n').collect { it + " ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/Depi-app-key.pem" }.join('\n')}
-                    """
-                    }
+                            // Write the inventory file with the IPs
+                            writeFile file: 'inventory.ini', text: """
+                            [ec2_instances]
+                            ${ec2Ips.split('\n').collect { it + " ansible_user=ubuntu ansible_ssh_private_key_file=${SSH_PRIVATE_KEY}" }.join('\n')}
+                            """
+                        }
+                     }
                 }
-                
-                sh '''
-                    echo "[ec2_instances]" > terraform-ec2/inventory2.ini
-                    terraform output -json ec2_public_ips | jq -r '.[] | . + " ansible_ssh_private_key_file=/var/lib/jenkins/workspace/react-docker-pipeline/ssh17063419242249076167.key ansible_user=ubuntu"' >> terraform-ec2/inventory2.ini
-
-                    cat terraform-ec2/inventory.ini
-                    cat inventory.ini
-                    echo "---------------"
-                    cat terraform-ec2/inventory2.ini
-                    cat inventory2.ini
-                    '''
+            
+                // For debugging purposes, print the contents of the generated inventory file
+                sh 'cat terraform-ec2/inventory.ini'
             }
         }
+
+        // stage('Generate Ansible Inventory') {
+        //     steps {
+        //         // Wait until the EC2 instances have been created
+        //         script {
+        //             dir('terraform-ec2/') { 
+        //             // Get the output of the EC2 public IPs from the module
+        //             def ec2Ips = sh(script: "terraform output -json ec2_public_ips", returnStdout: true).trim()
+        //             sh ''' terraform output -json ec2_public_ips | jq -r '.[]' > inventory2.ini '''
+
+        //             // Write the inventory file
+        //             writeFile file: 'inventory.ini', text: """
+        //             [ec2_instances]
+        //             ${ec2Ips.split('\n').collect { it + " ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/Depi-app-key.pem" }.join('\n')}
+        //             """
+        //             }
+        //         }
+                
+        //         sh '''
+        //             echo "[ec2_instances]" > terraform-ec2/inventory2.ini
+        //             terraform output -json ec2_public_ips | jq -r '.[] | . + " ansible_ssh_private_key_file=/var/lib/jenkins/workspace/react-docker-pipeline/ssh17063419242249076167.key ansible_user=ubuntu"' >> terraform-ec2/inventory2.ini
+
+        //             cat terraform-ec2/inventory.ini
+        //             cat inventory.ini
+        //             echo "---------------"
+        //             cat terraform-ec2/inventory2.ini
+        //             cat inventory2.ini
+        //             '''
+        //     }
+        // }
 
         // stage('Run Ansible Playbook') {
         //     steps {
