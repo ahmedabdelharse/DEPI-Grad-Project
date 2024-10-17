@@ -164,7 +164,7 @@ pipeline {
                 subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: """<p>SUCCESS: Job ${env.JOB_NAME} Build #${env.BUILD_NUMBER} was successful.</p>
                          <p>Check the build details <a href="${env.BUILD_URL}">here</a>.</p>""",
-                to: 'recipient-email@gmail.com',
+                to: 'engahmedharse@gmail.com',
                 mimeType: 'text/html'
             )
         }
@@ -173,7 +173,7 @@ pipeline {
                 subject: "FAILURE: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: """<p>FAILURE: Job ${env.JOB_NAME} Build #${env.BUILD_NUMBER} has failed.</p>
                          <p>Check the build details <a href="${env.BUILD_URL}">here</a>.</p>""",
-                to: 'recipient-email@gmail.com',
+                to: 'engahmedharse@gmail.com',
                 mimeType: 'text/html'
             )
         }
