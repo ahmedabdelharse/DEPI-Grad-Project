@@ -45,33 +45,33 @@ pipeline {
         //     }
         // }
 
-        stage('Build') { //need cache to work to save up resources
-            steps {
-                timeout(time: 20, unit: 'MINUTES') {
-                    script {
-                        sh "docker build --cache-from ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_LATEST} ."
-                    }
-                }
-            }
-        }
+        // stage('Build') { //need cache to work to save up resources
+        //     steps {
+        //         timeout(time: 20, unit: 'MINUTES') {
+        //             script {
+        //                 sh "docker build --cache-from ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_LATEST} ."
+        //             }
+        //         }
+        //     }
+        // }
         
         //need test stage
 
-        stage('Push') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: "${DOCKER_REGISTRY_CREDS}", passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                    script {
-                        sh '''
-                        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin ${DOCKER_PLATFORM}
-                        '''
+        // stage('Push') {/
+        //     steps {
+        //         withCredentials([usernamePassword(credentialsId: "${DOCKER_REGISTRY_CREDS}", passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+        //             script {
+        //                 sh '''
+        //                 echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin ${DOCKER_PLATFORM}
+        //                 '''
 
-                        retry(3) {
-                            sh "docker push ${DOCKER_IMAGE_LATEST}"
-                        }
-                    }
-                }
-            }
-        }
+        //                 retry(3) {
+        //                     sh "docker push ${DOCKER_IMAGE_LATEST}"
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
         // stage('Generate Ansible Inventory') {
         //     steps {
@@ -151,46 +151,25 @@ pipeline {
             emailext (
                 to: 'engahmedharse@gmail.com',
                 subject: "Build Success: ${currentBuild.fullDisplayName}",
-                body: "Good news! The build was successful."
+                body: "<p>Good news! The build was successful.</p>",
+                mimeType: 'text/html'
             )
         }
         failure {
             emailext (
                 to: 'engahmedharse@gmail.com',
                 subject: "Build Failed: ${currentBuild.fullDisplayName}",
-                body: "Oops! The build has failed."
+                body: "<p>Oops! The build has failed.</p>",
+                mimeType: 'text/html'
             )
         }
         always {
             // Echo message to log the cleanup
             echo 'Cleaning up workspace'
 
-            // Cleanup workspace ##remove currently to no install everytime 
-            // cleanWs()
-            // sh '''
-            //     # Remove everything except the .terraform directory
-            //     find . -mindepth 1 ! -name '.terraform' -print
-            //     find . -mindepth 1 ! -name '.terraform' -exec rm -rf {} +
-            // '''
+            // Optional workspace cleanup
+            // cleanWs() 
 
-        // success {
-        //     emailext (
-        //         subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-        //         body: """<p>SUCCESS: Job ${env.JOB_NAME} Build #${env.BUILD_NUMBER} was successful.</p>
-        //                  <p>Check the build details <a href="${env.BUILD_URL}">here</a>.</p>""",
-        //         to: 'engahmedharse@gmail.com',
-        //         mimeType: 'text/html'
-        //     )
-        // }
-        // failure {
-        //     emailext (
-        //         subject: "FAILURE: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-        //         body: """<p>FAILURE: Job ${env.JOB_NAME} Build #${env.BUILD_NUMBER} has failed.</p>
-        //                  <p>Check the build details <a href="${env.BUILD_URL}">here</a>.</p>""",
-        //         to: 'engahmedharse@gmail.com',
-        //         mimeType: 'text/html'
-        //     )
-        // }
             // Additional cleanup commands
             script {
                 sh "docker rmi ${DOCKER_IMAGE_LATEST} || true"
