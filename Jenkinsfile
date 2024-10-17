@@ -73,27 +73,27 @@ pipeline {
             }
         }
 
-        stage('Generate Ansible Inventory') {
-            steps {
-                script {
-                     withCredentials([file(credentialsId: 'Depi-app-key.pem', variable: 'SSH_PRIVATE_KEY')]) {   
-                        dir('terraform-ec2/') {
-                            // Retrieve EC2 public IPs from Terraform output
-                            def ec2Ips = sh(script: "terraform output -json ec2_public_ips", returnStdout: true).trim()
+        // stage('Generate Ansible Inventory') {
+        //     steps {
+        //         script {
+        //              withCredentials([file(credentialsId: 'Depi-app-key.pem', variable: 'SSH_PRIVATE_KEY')]) {   
+        //                 dir('terraform-ec2/') {
+        //                     // Retrieve EC2 public IPs from Terraform output
+        //                     def ec2Ips = sh(script: "terraform output -json ec2_public_ips", returnStdout: true).trim()
 
-                            // Write the inventory file with the IPs
-                            writeFile file: 'inventory.ini', text: """
-                            [ec2_instances]
-                            ${ec2Ips.split('\n').collect { it + " ansible_user=ubuntu ansible_ssh_private_key_file=${SSH_PRIVATE_KEY}" }.join('\n')}
-                            """
-                        }
-                     }
-                }
+        //                     // Write the inventory file with the IPs
+        //                     writeFile file: 'inventory.ini', text: """
+        //                     [ec2_instances]
+        //                     ${ec2Ips.split('\n').collect { it + " ansible_user=ubuntu ansible_ssh_private_key_file=${SSH_PRIVATE_KEY}" }.join('\n')}
+        //                     """
+        //                 }
+        //              }
+        //         }
             
-                // For debugging purposes, print the contents of the generated inventory file
-                sh 'cat terraform-ec2/inventory.ini'
-            }
-        }
+        //         // For debugging purposes, print the contents of the generated inventory file
+        //         sh 'cat terraform-ec2/inventory.ini'
+        //     }
+        // }
 
         // stage('Generate Ansible Inventory') {
         //     steps {
@@ -132,18 +132,18 @@ pipeline {
         //     }
         // }
 
-        stage('Run Ansible Playbook') {
-            steps {
-                script {
-                    ansiblePlaybook(
-                        playbook: 'deploy_docker.yml',
-                        inventory: 'terraform-ec2/inventory.ini',
-                        credentialsId: 'Depi-app-key.pem',
-                        extras: "-e docker_image=${DOCKER_IMAGE_LATEST}"
-                    )
-                }
-            }
-        }
+        // stage('Run Ansible Playbook') {
+        //     steps {
+        //         script {
+        //             ansiblePlaybook(
+        //                 playbook: 'deploy_docker.yml',
+        //                 inventory: 'terraform-ec2/inventory.ini',
+        //                 credentialsId: 'Depi-app-key.pem',
+        //                 extras: "-e docker_image=${DOCKER_IMAGE_LATEST}"
+        //             )
+        //         }
+        //     }
+        // }
     }
 
     post {
@@ -159,7 +159,24 @@ pipeline {
             //     find . -mindepth 1 ! -name '.terraform' -exec rm -rf {} +
             // '''
 
-            
+        success {
+            emailext (
+                subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """<p>SUCCESS: Job ${env.JOB_NAME} Build #${env.BUILD_NUMBER} was successful.</p>
+                         <p>Check the build details <a href="${env.BUILD_URL}">here</a>.</p>""",
+                to: 'recipient-email@gmail.com',
+                mimeType: 'text/html'
+            )
+        }
+        failure {
+            emailext (
+                subject: "FAILURE: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """<p>FAILURE: Job ${env.JOB_NAME} Build #${env.BUILD_NUMBER} has failed.</p>
+                         <p>Check the build details <a href="${env.BUILD_URL}">here</a>.</p>""",
+                to: 'recipient-email@gmail.com',
+                mimeType: 'text/html'
+            )
+        }
             // Additional cleanup commands
             script {
                 sh "docker rmi ${DOCKER_IMAGE_LATEST} || true"
