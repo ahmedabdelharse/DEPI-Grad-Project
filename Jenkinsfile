@@ -1,155 +1,16 @@
 pipeline {
-    agent any
-
-    environment {
-        // AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')  // Reference the credential ID from Jenkins
-        // AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')  // Reference the credential ID from Jenkins
-        APP_NAME = 'my-react-app'
-        DOCKER_IMAGE_LATEST = "${DOCKER_REGISTRY}/${APP_NAME}:latest"
-        DOCKER_PLATFORM = "docker.io"
-        ANSIBLE_HOST_KEY_CHECKING = 'False'
-    }
+    agent any 
 
     stages {
-        stage('test stage') {
-                sh "echo testing email"
+        stage('Build') {
+            steps {
+                echo 'Building...'
+                // Simulate a build step (this can be any command)
+                sh 'echo "Build step complete."'
             }
         }
-        // stage('Terraform Init') {
-        //     steps {
-        //         dir('terraform-ec2/') {  // Adjust the path as necessary
-        //         sh 'terraform init'
-        //         }
-        //     }
-        // }
-
-        // stage('Terraform apply') {
-        //     steps {
-        //         dir('terraform-ec2/') {  // Adjust the path as necessary
-        //         // sh 'terraform apply -auto-approve'
-        //         // }
-        //         withCredentials([file(credentialsId: 'secrets.tfvars', variable: 'TF_VARS_FILE')]) {
-        //                 sh 'terraform apply -auto-approve -var-file=${TF_VARS_FILE}'
-        //             }
-        //         }
-        //     }
-        // }
-
-        // stage('Terraform Destroy') {
-        //     steps {
-        //         // Use AWS Access Key ID and Secret Access Key
-        //         withCredentials([usernamePassword(credentialsId: 'aws-credentials', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-        //             dir('terraform-ec2/') {  // Adjust the path as necessary
-        //                 withCredentials([file(credentialsId: 'secrets.tfvars', variable: 'TF_VARS_FILE')]) {
-        //                     // Run the Terraform apply command
-        //                     sh 'terraform destroy -auto-approve -var-file=${TF_VARS_FILE}'
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-
-        // stage('Build') { //need cache to work to save up resources
-        //     steps {
-        //         timeout(time: 20, unit: 'MINUTES') {
-        //             script {
-        //                 sh "docker build --cache-from ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_LATEST} ."
-        //             }
-        //         }
-        //     }
-        // }
-        
-        //need test stage
-
-        // stage('Push') {/
-        //     steps {
-        //         withCredentials([usernamePassword(credentialsId: "${DOCKER_REGISTRY_CREDS}", passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-        //             script {
-        //                 sh '''
-        //                 echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin ${DOCKER_PLATFORM}
-        //                 '''
-
-        //                 retry(3) {
-        //                     sh "docker push ${DOCKER_IMAGE_LATEST}"
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-
-        // stage('Generate Ansible Inventory') {
-        //     steps {
-        //         script {
-        //              withCredentials([file(credentialsId: 'Depi-app-key.pem', variable: 'SSH_PRIVATE_KEY')]) {   
-        //                 dir('terraform-ec2/') {
-        //                     // Retrieve EC2 public IPs from Terraform output
-        //                     def ec2Ips = sh(script: "terraform output -json ec2_public_ips", returnStdout: true).trim()
-
-        //                     // Write the inventory file with the IPs
-        //                     writeFile file: 'inventory.ini', text: """
-        //                     [ec2_instances]
-        //                     ${ec2Ips.split('\n').collect { it + " ansible_user=ubuntu ansible_ssh_private_key_file=${SSH_PRIVATE_KEY}" }.join('\n')}
-        //                     """
-        //                 }
-        //              }
-        //         }
-            
-        //         // For debugging purposes, print the contents of the generated inventory file
-        //         sh 'cat terraform-ec2/inventory.ini'
-        //     }
-        // }
-
-        // stage('Generate Ansible Inventory') {
-        //     steps {
-        //         // Wait until the EC2 instances have been created
-        //         script {
-        //             dir('terraform-ec2/') { 
-        //             // Get the output of the EC2 public IPs from the module
-        //             def ec2Ips = sh(script: "terraform output -json ec2_public_ips", returnStdout: true).trim()
-        //             sh ''' terraform output -json ec2_public_ips | jq -r '.[]' > inventory2.ini '''
-
-        //             // Write the inventory file
-        //             writeFile file: 'inventory.ini', text: """
-        //             [ec2_instances]
-        //             ${ec2Ips.split('\n').collect { it + " ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/Depi-app-key.pem" }.join('\n')}
-        //             """
-        //             }
-        //         }
-                
-        //         sh '''
-        //             echo "[ec2_instances]" > terraform-ec2/inventory2.ini
-        //             terraform output -json ec2_public_ips | jq -r '.[] | . + " ansible_ssh_private_key_file=/var/lib/jenkins/workspace/react-docker-pipeline/ssh17063419242249076167.key ansible_user=ubuntu"' >> terraform-ec2/inventory2.ini
-
-        //             cat terraform-ec2/inventory.ini
-        //             cat inventory.ini
-        //             echo "---------------"
-        //             cat terraform-ec2/inventory2.ini
-        //             cat inventory2.ini
-        //             '''
-        //     }
-        // }
-
-        // stage('Run Ansible Playbook') {
-        //     steps {
-        //         // Run Ansible with the inventory
-        //         sh 'ansible-playbook -i terraform-ec2/inventory.ini deploy_docker.yml'
-        //     }
-        // }
-
-        // stage('Run Ansible Playbook') {
-        //     steps {
-        //         script {
-        //             ansiblePlaybook(
-        //                 playbook: 'deploy_docker.yml',
-        //                 inventory: 'terraform-ec2/inventory.ini',
-        //                 credentialsId: 'Depi-app-key.pem',
-        //                 extras: "-e docker_image=${DOCKER_IMAGE_LATEST}"
-        //             )
-        //         }
-        //     }
-        // }
     }
-
+    
     post {
         success {
             emailext (
@@ -167,22 +28,195 @@ pipeline {
                 mimeType: 'text/html'
             )
         }
-        always {
-            // Echo message to log the cleanup
-            echo 'Cleaning up workspace'
-
-            // Optional workspace cleanup
-            // cleanWs() 
-
-            // Additional cleanup commands
-            script {
-                sh "docker rmi ${DOCKER_IMAGE_LATEST} || true"
-                sh 'docker system prune -f'
-                sh 'docker logout'
-            }
-        }
     }
 }
+
+
+// pipeline {
+//     agent any
+
+//     environment {
+//         // AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')  // Reference the credential ID from Jenkins
+//         // AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')  // Reference the credential ID from Jenkins
+//         APP_NAME = 'my-react-app'
+//         DOCKER_IMAGE_LATEST = "${DOCKER_REGISTRY}/${APP_NAME}:latest"
+//         DOCKER_PLATFORM = "docker.io"
+//         ANSIBLE_HOST_KEY_CHECKING = 'False'
+//     }
+
+//     stages {
+//         stage('test stage') {
+//                 sh "echo testing email"
+//             }
+//         }
+//         // stage('Terraform Init') {
+//         //     steps {
+//         //         dir('terraform-ec2/') {  // Adjust the path as necessary
+//         //         sh 'terraform init'
+//         //         }
+//         //     }
+//         // }
+
+//         // stage('Terraform apply') {
+//         //     steps {
+//         //         dir('terraform-ec2/') {  // Adjust the path as necessary
+//         //         // sh 'terraform apply -auto-approve'
+//         //         // }
+//         //         withCredentials([file(credentialsId: 'secrets.tfvars', variable: 'TF_VARS_FILE')]) {
+//         //                 sh 'terraform apply -auto-approve -var-file=${TF_VARS_FILE}'
+//         //             }
+//         //         }
+//         //     }
+//         // }
+
+//         // stage('Terraform Destroy') {
+//         //     steps {
+//         //         // Use AWS Access Key ID and Secret Access Key
+//         //         withCredentials([usernamePassword(credentialsId: 'aws-credentials', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+//         //             dir('terraform-ec2/') {  // Adjust the path as necessary
+//         //                 withCredentials([file(credentialsId: 'secrets.tfvars', variable: 'TF_VARS_FILE')]) {
+//         //                     // Run the Terraform apply command
+//         //                     sh 'terraform destroy -auto-approve -var-file=${TF_VARS_FILE}'
+//         //                 }
+//         //             }
+//         //         }
+//         //     }
+//         // }
+
+//         // stage('Build') { //need cache to work to save up resources
+//         //     steps {
+//         //         timeout(time: 20, unit: 'MINUTES') {
+//         //             script {
+//         //                 sh "docker build --cache-from ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_LATEST} ."
+//         //             }
+//         //         }
+//         //     }
+//         // }
+        
+//         //need test stage
+
+//         // stage('Push') {/
+//         //     steps {
+//         //         withCredentials([usernamePassword(credentialsId: "${DOCKER_REGISTRY_CREDS}", passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+//         //             script {
+//         //                 sh '''
+//         //                 echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin ${DOCKER_PLATFORM}
+//         //                 '''
+
+//         //                 retry(3) {
+//         //                     sh "docker push ${DOCKER_IMAGE_LATEST}"
+//         //                 }
+//         //             }
+//         //         }
+//         //     }
+//         // }
+
+//         // stage('Generate Ansible Inventory') {
+//         //     steps {
+//         //         script {
+//         //              withCredentials([file(credentialsId: 'Depi-app-key.pem', variable: 'SSH_PRIVATE_KEY')]) {   
+//         //                 dir('terraform-ec2/') {
+//         //                     // Retrieve EC2 public IPs from Terraform output
+//         //                     def ec2Ips = sh(script: "terraform output -json ec2_public_ips", returnStdout: true).trim()
+
+//         //                     // Write the inventory file with the IPs
+//         //                     writeFile file: 'inventory.ini', text: """
+//         //                     [ec2_instances]
+//         //                     ${ec2Ips.split('\n').collect { it + " ansible_user=ubuntu ansible_ssh_private_key_file=${SSH_PRIVATE_KEY}" }.join('\n')}
+//         //                     """
+//         //                 }
+//         //              }
+//         //         }
+            
+//         //         // For debugging purposes, print the contents of the generated inventory file
+//         //         sh 'cat terraform-ec2/inventory.ini'
+//         //     }
+//         // }
+
+//         // stage('Generate Ansible Inventory') {
+//         //     steps {
+//         //         // Wait until the EC2 instances have been created
+//         //         script {
+//         //             dir('terraform-ec2/') { 
+//         //             // Get the output of the EC2 public IPs from the module
+//         //             def ec2Ips = sh(script: "terraform output -json ec2_public_ips", returnStdout: true).trim()
+//         //             sh ''' terraform output -json ec2_public_ips | jq -r '.[]' > inventory2.ini '''
+
+//         //             // Write the inventory file
+//         //             writeFile file: 'inventory.ini', text: """
+//         //             [ec2_instances]
+//         //             ${ec2Ips.split('\n').collect { it + " ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/Depi-app-key.pem" }.join('\n')}
+//         //             """
+//         //             }
+//         //         }
+                
+//         //         sh '''
+//         //             echo "[ec2_instances]" > terraform-ec2/inventory2.ini
+//         //             terraform output -json ec2_public_ips | jq -r '.[] | . + " ansible_ssh_private_key_file=/var/lib/jenkins/workspace/react-docker-pipeline/ssh17063419242249076167.key ansible_user=ubuntu"' >> terraform-ec2/inventory2.ini
+
+//         //             cat terraform-ec2/inventory.ini
+//         //             cat inventory.ini
+//         //             echo "---------------"
+//         //             cat terraform-ec2/inventory2.ini
+//         //             cat inventory2.ini
+//         //             '''
+//         //     }
+//         // }
+
+//         // stage('Run Ansible Playbook') {
+//         //     steps {
+//         //         // Run Ansible with the inventory
+//         //         sh 'ansible-playbook -i terraform-ec2/inventory.ini deploy_docker.yml'
+//         //     }
+//         // }
+
+//         // stage('Run Ansible Playbook') {
+//         //     steps {
+//         //         script {
+//         //             ansiblePlaybook(
+//         //                 playbook: 'deploy_docker.yml',
+//         //                 inventory: 'terraform-ec2/inventory.ini',
+//         //                 credentialsId: 'Depi-app-key.pem',
+//         //                 extras: "-e docker_image=${DOCKER_IMAGE_LATEST}"
+//         //             )
+//         //         }
+//         //     }
+//         // }
+//     }
+
+//     post {
+//         success {
+//             emailext (
+//                 to: 'engahmedharse@gmail.com',
+//                 subject: "Build Success: ${currentBuild.fullDisplayName}",
+//                 body: "<p>Good news! The build was successful.</p>",
+//                 mimeType: 'text/html'
+//             )
+//         }
+//         failure {
+//             emailext (
+//                 to: 'engahmedharse@gmail.com',
+//                 subject: "Build Failed: ${currentBuild.fullDisplayName}",
+//                 body: "<p>Oops! The build has failed.</p>",
+//                 mimeType: 'text/html'
+//             )
+//         }
+//         always {
+//             // Echo message to log the cleanup
+//             echo 'Cleaning up workspace'
+
+//             // Optional workspace cleanup
+//             // cleanWs() 
+
+//             // Additional cleanup commands
+//             script {
+//                 sh "docker rmi ${DOCKER_IMAGE_LATEST} || true"
+//                 sh 'docker system prune -f'
+//                 sh 'docker logout'
+//             }
+//         }
+//     }
+// }
 
 
 // pipeline {
