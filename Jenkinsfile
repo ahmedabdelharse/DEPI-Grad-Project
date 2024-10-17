@@ -147,6 +147,22 @@ pipeline {
     }
 
     post {
+        success {
+            emailext(
+                subject: "SUCCESS: Job '${env.JOB_NAME}' (${env.BUILD_NUMBER})",
+                body: "Good news! The build was successful.\n\nCheck it out here: ${env.BUILD_URL}",
+                to: 'engahmedharse@example.com'
+            )
+        }
+        failure {
+            emailext (
+                subject: "FAILURE: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """<p>FAILURE: Job ${env.JOB_NAME} Build #${env.BUILD_NUMBER} has failed.</p>
+                         <p>Check the build details <a href="${env.BUILD_URL}">here</a>.</p>""",
+                to: 'engahmedharse@gmail.com',
+                mimeType: 'text/html'
+            )
+        }
         always {
             // Echo message to log the cleanup
             echo 'Cleaning up workspace'
@@ -159,24 +175,24 @@ pipeline {
             //     find . -mindepth 1 ! -name '.terraform' -exec rm -rf {} +
             // '''
 
-        success {
-            emailext (
-                subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: """<p>SUCCESS: Job ${env.JOB_NAME} Build #${env.BUILD_NUMBER} was successful.</p>
-                         <p>Check the build details <a href="${env.BUILD_URL}">here</a>.</p>""",
-                to: 'engahmedharse@gmail.com',
-                mimeType: 'text/html'
-            )
-        }
-        failure {
-            emailext (
-                subject: "FAILURE: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: """<p>FAILURE: Job ${env.JOB_NAME} Build #${env.BUILD_NUMBER} has failed.</p>
-                         <p>Check the build details <a href="${env.BUILD_URL}">here</a>.</p>""",
-                to: 'engahmedharse@gmail.com',
-                mimeType: 'text/html'
-            )
-        }
+        // success {
+        //     emailext (
+        //         subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+        //         body: """<p>SUCCESS: Job ${env.JOB_NAME} Build #${env.BUILD_NUMBER} was successful.</p>
+        //                  <p>Check the build details <a href="${env.BUILD_URL}">here</a>.</p>""",
+        //         to: 'engahmedharse@gmail.com',
+        //         mimeType: 'text/html'
+        //     )
+        // }
+        // failure {
+        //     emailext (
+        //         subject: "FAILURE: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+        //         body: """<p>FAILURE: Job ${env.JOB_NAME} Build #${env.BUILD_NUMBER} has failed.</p>
+        //                  <p>Check the build details <a href="${env.BUILD_URL}">here</a>.</p>""",
+        //         to: 'engahmedharse@gmail.com',
+        //         mimeType: 'text/html'
+        //     )
+        // }
             // Additional cleanup commands
             script {
                 sh "docker rmi ${DOCKER_IMAGE_LATEST} || true"
