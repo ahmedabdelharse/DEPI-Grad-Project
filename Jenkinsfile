@@ -150,17 +150,15 @@ pipeline {
         success {
             emailext (
                 to: 'engahmedharse@gmail.com',
-                subject: "Successful Build: ${currentBuild.fullDisplayName}",
-                body: "The build was successful!",
-                mimeType: 'text/html'
+                subject: "Build Success: ${currentBuild.fullDisplayName}",
+                body: "Good news! The build was successful."
             )
         }
         failure {
             emailext (
                 to: 'engahmedharse@gmail.com',
-                subject: "Failed Build: ${currentBuild.fullDisplayName}",
-                body: "The build has failed. Please check Jenkins for details.",
-                mimeType: 'text/html'
+                subject: "Build Failed: ${currentBuild.fullDisplayName}",
+                body: "Oops! The build has failed."
             )
         }
         always {
