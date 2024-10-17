@@ -11,6 +11,10 @@ pipeline {
     }
 
     stages {
+        stage('test stage') {
+                sh "echo testing email"
+            }
+        }
         // stage('Terraform Init') {
         //     steps {
         //         dir('terraform-ec2/') {  // Adjust the path as necessary
